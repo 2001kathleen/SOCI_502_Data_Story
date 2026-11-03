@@ -1,0 +1,17 @@
+---
+title: "Reading Data"
+format: html
+---
+
+I'm going to start by reading in the raw quota data before reading in the other data. I plan to clean them separately then attempt to combine them.
+
+```{r}
+library(tidyverse)
+
+# Reading in IMF quota data
+
+raw_quota_data <- 
+  read.csv("raw_quota_data.csv")
+
+raw_quota_data
+```

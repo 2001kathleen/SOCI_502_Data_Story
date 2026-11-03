@@ -1,6 +1,6 @@
 ---
 title: "Reading Data"
-format: html
+format: pdf
 ---
 
 I'm going to start by reading in the raw quota data before reading in the other data. I plan to clean them separately then attempt to combine them.
@@ -13,5 +13,21 @@ library(tidyverse)
 raw_quota_data <- 
   read.csv("raw_quota_data.csv")
 
-raw_quota_data
+head(raw_quota_data)
+
+tail(raw_quota_data)
+```
+
+The quota data looks really messy because it was from an Excel spreadsheet with empty rows and values that I think were put in stylistically. There's also cases of what should be column names being values. When I clean this data for my own uses, I'll only need 2 columns: country name, and CQS, which refers to the country's quota. I'll also need to make sure that column names are separated from values. I'll also want to make sure the names of countries are standardized with the names of countries in the other dataset I am using. Then on top of that I'll need to run tests to ensure that the values themselves actually make sense based on what I'm studying.
+
+Now I'm going to read in the raw IMF conditionality data.
+
+```{r}
+# Reading in IMF conditionality data
+
+raw_conditionality_data <-
+  read.csv("raw_IMF_conditionality_data.csv")
+
+head(raw_conditionality_data)
+tail(raw_conditionality_data)
 ```

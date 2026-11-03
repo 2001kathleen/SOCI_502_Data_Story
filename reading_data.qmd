@@ -3,6 +3,8 @@ title: "Reading Data"
 format: pdf
 ---
 
+## IMF quota data
+
 I'm going to start by reading in the raw quota data before reading in the other data. I plan to clean them separately then attempt to combine them.
 
 ```{r}
@@ -20,6 +22,8 @@ tail(raw_quota_data)
 
 The quota data looks really messy because it was from an Excel spreadsheet with empty rows and values that I think were put in stylistically. There's also cases of what should be column names being values. When I clean this data for my own uses, I'll only need 2 columns: country name, and CQS, which refers to the country's quota. I'll also need to make sure that column names are separated from values. I'll also want to make sure the names of countries are standardized with the names of countries in the other dataset I am using. Then on top of that I'll need to run tests to ensure that the values themselves actually make sense based on what I'm studying.
 
+## IMF conditionality data
+
 Now I'm going to read in the raw IMF conditionality data.
 
 ```{r}
@@ -31,3 +35,13 @@ raw_conditionality_data <-
 head(raw_conditionality_data)
 tail(raw_conditionality_data)
 ```
+
+This data looks a lot better than the other dataset. It was also originally an Excel file, but the data is properly arranged in the rows and columns. To clean this dataset, I'll need to get rid of some of the columns I'm not interested in, leaving me only with: country name, condition type, and condition policy area. (I'm considering keeping condition text to maybe analyse word count, but I'm not sure yet). One of the issues I have is that this dataset lists each loan condition as a separate row, when what I actually want is one row per country that lists the number of of total conditions, and the number of each condition type and condition policy area. This will be more complicated than I had originally imagined, where I had originally planned to just convert the data frame from tall to wide format. I think I'll need to use some sort of sorting function to count number of variables and make a new data frame that I can actually use for my analysis, and for combining with the other dataset. Another issue is that this dataset, since it's organized by loans, only includes countries that have IMF loans. I want to analyze the relationship between voting power and loans, so I'll need to figure out a way to account for missing countries when I combine this with my other dataset. Once I sort this out, I'll have to do all the regular testing to make sure values make sense.
+
+## Colonization data
+
+I haven't yet decided to which colonization dataset I'll use. I was originally going to use COLDAT, but it only shows if a place was colonized by Europe and not North America, which I think is problematic, particularly because of the US and Japan. I am going to see if I can find a simple dataset that has what I need, and if not, I may either have to abandon this or somehow add my own column where I manually fill in values.
+
+## Combining different data sets
+
+I'm hoping that once I clean my data separately, it shouldn't be too much work to combine them. I plan to attach the conditionality dataset onto the quota dataset using some sort of mutate function. The biggest issue I can foresee is that there are countries in the quota dataset who are not present in the conditionalities dataset because they don't have loans. This might be challenging as they will have missing values. I should be able to fix this by changing all missing values in those columns to 0 (for no loan).

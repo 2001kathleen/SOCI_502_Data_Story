@@ -72,7 +72,7 @@ I think actually I'm just gonna keep country name and condition type, plus condi
 raw_conditionality_data <-
   read.csv("raw_IMF_conditionality_data.csv")
 
-raw_conditionality_data
+raw_conditionality_data 
 ```
 
 ```{r}
@@ -83,7 +83,7 @@ messy_conditionality_data <-
 
 # Now I'm going to try counting different values (maybe using a summary function?)
 
-summary(messy_conditionality_data)
+messy_conditionality_data
 
 count(messy_conditionality_data,
       Country.Name, Condition.Type)
@@ -125,5 +125,12 @@ head(wide_messy_conditionality_data)
 ```{r}
 # Now trying something new to see if I can get the different types of categorical data to show up as columns
 
-# It didn't work
+# I'm going to try separating out each type of condition separately to see if that works
+
+conditionality_test <-
+  table(messy_conditionality_data)
+
+conditionality_test
+
+# This isn't quite right BUT it is getting better
 ```

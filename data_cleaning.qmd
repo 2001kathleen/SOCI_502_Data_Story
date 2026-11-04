@@ -1,0 +1,41 @@
+---
+title: "Data Cleaning"
+format: pdf
+---
+
+## IMF quota data
+
+I'm going to start by reading in my IMF quota data, which I already did last week, and then I will start to go through the steps to clean it.
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(tinytable)
+library(dplyr)
+```
+
+```{r}
+# Reading in raw data
+
+head(raw_quota_data)
+```
+
+```{r}
+# Trying to drop columns
+
+quota_data <- 
+  select(raw_quota_data, 1, 2)
+
+# Trying to drop the rows that are not the actual variables
+
+quota_data <-
+  slice(quota_data, 3:195)
+
+quota_data <-
+  rename(quota_data,
+         country_name = Table.1..Updated.Quota.Formula.Variables.Shares.1.,
+         quota_percent = X)
+
+quota_data
+```

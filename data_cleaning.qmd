@@ -101,6 +101,19 @@ head(total_conditionality)
 
 # Trying something else
 # It didn't work
+
+hopefully <- messy_conditionality_data %>%
+  pivot_wider(
+    names_from = Condition.Type,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  mutate(Total.Loans = rowSums(across(-Country.Name))) %>%
+  select(Country.Name, Total.Loans, everything())
+
+hopefully
+
+# I think that doesn't work because n is not actually a column, that's just from when I counted the number of each country name
 ```
 
 ```{r}
@@ -133,4 +146,8 @@ conditionality_test <-
 conditionality_test
 
 # This isn't quite right BUT it is getting better
+# I don't know why it looks separated out in the way it did
+# But it is helpful that it counted anything at all
+
+
 ```

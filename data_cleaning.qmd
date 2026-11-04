@@ -16,7 +16,10 @@ library(dplyr)
 ```
 
 ```{r}
-# Reading in raw data
+# Reading in raw quota data
+
+raw_quota_data <-
+  read.csv("raw_quota_data.csv")
 
 head(raw_quota_data)
 ```

@@ -81,8 +81,6 @@ raw_conditionality_data
 messy_conditionality_data <-
   select(raw_conditionality_data, 1, 8, 13)
 
-messy_conditionality_data
-
 # Now I'm going to try counting different values (maybe using a summary function?)
 
 summary(messy_conditionality_data)
@@ -101,7 +99,31 @@ total_conditionality <-
 
 head(total_conditionality)
 
-
+# Trying something else
+# It didn't work
 ```
 
-I'm going to try a tip from stackoverflow for how to change categorical values into a column, which maybe will let me use the count function then for specific types of conditions (rather than counting for each country).
+```{r}
+# Trying to count for different conditions as well
+
+# I'm going to try turning it into a wide data frame to see if that helps me at all
+
+wide_messy_conditionality_data <-
+  pivot_wider(
+    messy_conditionality_data,
+    names_from = Country.Name,
+    values_from = Condition.Type
+  )
+
+wide_messy_conditionality_data
+
+head(wide_messy_conditionality_data)
+
+# Ok so I think it doesn't help me at all
+```
+
+```{r}
+# Now trying something new to see if I can get the different types of categorical data to show up as columns
+
+# It didn't work
+```

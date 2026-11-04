@@ -35,10 +35,73 @@ quota_data <-
 quota_data <-
   slice(quota_data, 3:195)
 
+# Renaming columns
+
 quota_data <-
   rename(quota_data,
          country_name = Table.1..Updated.Quota.Formula.Variables.Shares.1.,
          quota_percent = X)
 
+# Arranging in alphabetical order (to make it easier to merge eventually)
+
+quota_data <-
+  arrange(quota_data, country_name)
+
+# Renaming China instead of China 2/ (which indicates that it includes some Chinese territories) to be the same as in the other dataset
+
+quota_data <-
+  quota_data |>
+  mutate(
+    country_name = str_replace_all(country_name, "China 2/", "China")
+  )
+  
 quota_data
 ```
+
+I still need to run some tests to make sure these numbers make sense - mostly just want to make sure they add up to 100.
+
+## IMF conditionality data
+
+Now I'm going to start with cleaning my IMF conditionality data. This will be more complicated because I'll first need to clean it as it is, and then I'll need to create a new data frame with counts of each condition, as opposed to listing each condition. I was going to keep in the condition text just in case I decide to run some sort of analysis on that, but it seems like only those that are unusual are coded in that way so I'm gonna remove it.
+
+I think actually I'm just gonna keep country name and condition type, plus condition policy area for if I need it later (I think I might).
+
+```{r}
+# Reading in raw conditionality data
+
+raw_conditionality_data <-
+  read.csv("raw_IMF_conditionality_data.csv")
+
+raw_conditionality_data
+```
+
+```{r}
+# Dropping columns I don't need (calling it messy before I make the final data frame)
+
+messy_conditionality_data <-
+  select(raw_conditionality_data, 1, 8, 13)
+
+messy_conditionality_data
+
+# Now I'm going to try counting different values (maybe using a summary function?)
+
+summary(messy_conditionality_data)
+
+count(messy_conditionality_data,
+      Country.Name, Condition.Type)
+
+count(messy_conditionality_data,
+      Country.Name, Condition.Policy.Area)
+
+# Making a data frame that just counts total conditions by counting how many times each country shows up
+
+total_conditionality <-
+  count(messy_conditionality_data,
+      Country.Name)
+
+head(total_conditionality)
+
+
+```
+
+I'm going to try a tip from stackoverflow for how to change categorical values into a column, which maybe will let me use the count function then for specific types of conditions (rather than counting for each country).

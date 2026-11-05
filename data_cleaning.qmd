@@ -136,18 +136,50 @@ head(wide_messy_conditionality_data)
 ```
 
 ```{r}
+df_policy_area <- 
+  table(messy_conditionality_data$Country.Name,
+      messy_conditionality_data$Condition.Policy.Area)
+
+```
+
+```{r}
+messy_conditionality_data %>%
+  tabyl(Country.Name, 
+        Condition.Type,
+        Condition.Policy.Area)
+```
+
+```{r}
 # Now trying something new to see if I can get the different types of categorical data to show up as columns
 
 # I'm going to try separating out each type of condition separately to see if that works
 
 conditionality_test <-
-  table(messy_conditionality_data)
+  table(messy_conditionality_data$Condition.Type)
 
-conditionality_test
+#messy_conditionality_data %>%
+  #group_by(Country.Name) %>%
+  #summarise(Condition.Type)
+  
+d_type <- 
+  table(messy_conditionality_data$Country.Name,
+      messy_conditionality_data$Condition.Type
+      )
 
 # This isn't quite right BUT it is getting better
 # I don't know why it looks separated out in the way it did
 # But it is helpful that it counted anything at all
 
 
+```
+
+```{r}
+head(messy_conditionality_data)
+
+afghanistan <- messy_conditionality_data %>%
+  filter(Country.Name == "Afghanistan")
+
+head(afghanistan)
+
+count(afghanistan$Condition.Type)
 ```

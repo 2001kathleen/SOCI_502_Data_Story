@@ -102,16 +102,16 @@ head(total_conditionality)
 # Trying something else
 # It didn't work
 
-hopefully <- messy_conditionality_data %>%
-  pivot_wider(
-    names_from = Condition.Type,
-    values_from = n,
-    values_fill = 0
+#hopefully <- messy_conditionality_data %>%
+ # pivot_wider(
+  #  names_from = Condition.Type,
+  #  values_from = n,
+  #  values_fill = 0
   ) %>%
-  mutate(Total.Loans = rowSums(across(-Country.Name))) %>%
-  select(Country.Name, Total.Loans, everything())
+#  mutate(Total.Loans = rowSums(across(-Country.Name))) %>%
+ # select(Country.Name, Total.Loans, everything())
 
-hopefully
+#hopefully
 
 # I think that doesn't work because n is not actually a column, that's just from when I counted the number of each country name
 ```
@@ -214,8 +214,64 @@ df_policy_area <-
 
 df_policy_area
 
+total_conditionality <-
+  as_tibble(total_conditionality)
+
+total_conditionality
+
 # THIS WORKED! 
 
 # Now I want to change the variable names to be more readable
 
+# I'm going to do that in a new chunk in case I fuck it up
+
+```
+
+Now I'm going to change the variable names. If I write the full names, I think it will get complicated really fast, so I'm going to keep the abbreviations that are used in the original data. But I also want it to be clear whether I'm talking about condition type or policy area, so I'll add that in.
+
+```{r}
+# This chunk is for naming the columns
+
+# First, the total number of conditions
+
+#total_conditionality <-
+  #rename(total_conditionality,
+        #country_name = Country.Name,
+        #total_conditions = n)
+
+total_conditionality
+
+# Now, the condition type
+
+#df_type <-
+  #rename(df_type,
+         #type_IB = type_IB,
+         #type_PA = PA,
+         #type_PC = PC,
+         #type_QPC = QPC,
+         #type_SB = SB,
+         #type_SPC = SPC)
+
+df_type
+
+# Now, policy area
+
+#df_policy_area <-
+  #rename(df_policy_area,
+         #area_DEB = DEB,
+         #area_ENV = ENV,
+         #area_EXT = EXT,
+         #area_FIN = FIN,
+         #area_FP = FP,
+         #area_INS = INS,
+         #area_LAB = LAB,
+         #area_OTH = OTH,
+         #area_POV = POV,
+         #area_PRI = PRI,
+         #area_RTP = RTP,
+         #area_SOE = SOE,
+         #area_SP = SP
+         #)
+
+df_policy_area
 ```

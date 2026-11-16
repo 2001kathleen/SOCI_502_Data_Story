@@ -275,3 +275,32 @@ df_type
 
 df_policy_area
 ```
+
+Now I'm going to try to slowly but surely and very carefully merge the data frames on conditionality. I'll try to merge with the other data set later.
+
+```{r}
+# First, going to try to merge the conditionality data frames
+
+merged_conditionality <-
+  bind_cols(total_conditionality, df_type, df_policy_area)
+
+# Ok this made the issue of including the country name 3 times, so I'll have to drop two
+
+merged_conditionality <-
+  select(merged_conditionality, 1:2, 4:9, 11:18)
+
+# The only issue left is that country_name got messed up
+
+merged_conditionality <-
+  rename(merged_conditionality,
+         country_name = "country_name...1")
+
+merged_conditionality
+  
+```
+
+Merged the conditionality data set! Now I need to merge that with my quota data. (Which will not be fun).
+
+## Merging quota data and conditionality data
+
+First, I need to try to merge them, and see what goes wrong and try to fix it. The biggest issues that I think will come up is that there are many more rows in the quota data than the conditionality data, and that the names might be slightly different. Once I can get it to a point that missing rows just have "NA", I'll hopefully be able to change NA to 0.

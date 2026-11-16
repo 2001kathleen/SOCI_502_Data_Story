@@ -136,10 +136,11 @@ head(wide_messy_conditionality_data)
 ```
 
 ```{r}
-df_policy_area <- 
+df_policy_area_original <- 
   table(messy_conditionality_data$Country.Name,
       messy_conditionality_data$Condition.Policy.Area)
 
+df_policy_area_original
 ```
 
 ```{r}
@@ -161,10 +162,12 @@ conditionality_test <-
   #group_by(Country.Name) %>%
   #summarise(Condition.Type)
   
-d_type <- 
+df_type_original <- 
   table(messy_conditionality_data$Country.Name,
       messy_conditionality_data$Condition.Type
       )
+
+df_type_original
 
 # This isn't quite right BUT it is getting better
 # I don't know why it looks separated out in the way it did
@@ -182,4 +185,37 @@ afghanistan <- messy_conditionality_data %>%
 head(afghanistan)
 
 count(afghanistan$Condition.Type)
+```
+
+### Cleaning the conditionality data now that I have the right kinds of data frames (for now)
+
+Now I need to change the variable names of df_type_original and df_policy_area, as well as for total_conditionality. After that I'll try to mutate the tables so I can combine them all together. I think missing variables will really give me a headache but hopefully it works.
+
+I'm going to start by putting my three different data frames in the same code chunk. Then I'll change the variable names one at a time, and then I'll go from there.
+
+```{r}
+# First, putting my three data frames in
+
+head(df_type_original)
+
+head(df_policy_area_original)
+
+head(total_conditionality)
+
+# Trying to make them into tibble
+
+df_type <- 
+  as_tibble(as.data.frame.matrix(df_type_original), rownames = "country_name")
+
+df_type
+
+df_policy_area <- 
+  as_tibble(as.data.frame.matrix(df_policy_area_original), rownames = "country_name")
+
+df_policy_area
+
+# THIS WORKED! 
+
+# Now I want to change the variable names to be more readable
+
 ```

@@ -304,3 +304,29 @@ Merged the conditionality data set! Now I need to merge that with my quota data.
 ## Merging quota data and conditionality data
 
 First, I need to try to merge them, and see what goes wrong and try to fix it. The biggest issues that I think will come up is that there are many more rows in the quota data than the conditionality data, and that the names might be slightly different. Once I can get it to a point that missing rows just have "NA", I'll hopefully be able to change NA to 0.
+
+```{r}
+# I'm just going to first try and see what happens when I try to merge
+
+test_merge <- quota_data %>%
+  left_join(merged_conditionality, by = "country_name")
+
+# Ok so there are two empty rows, I'm going to try to use the slice function
+
+test_merge <-
+  slice(test_merge, 3:193)
+
+# OK that worked
+
+# Now I am going to try to change NA to 0
+
+test_merge[is.na(test_merge)] <- 0
+
+# AMAZING! That worked
+
+df_final <- test_merge
+
+df_final
+```
+
+Done with data cleaning! YAY!

@@ -79,9 +79,191 @@ Once I had the cleaned quota data, I moved on to the conditionality data.
 
 ### Conditionality data
 
+The conditionality data was nicer in that it was used for research, and was thus formatted properly. However, it was a lot further from what I actually needed for my final dataset, so there was a bit more cleaning to do. To start, I had to read in the raw data.
+
+```{r}
+
+# Reading in raw conditionality data
+
+raw_conditionality_data <-
+  read.csv("raw_IMF_conditionality_data.csv")
+
+head(raw_conditionality_data)
+```
+
+Next, I had to remove the columns I didn't need.
+
+```{r}
+
+# Removing columns I don't need
+
+messy_conditionality_data <-
+  select(raw_conditionality_data, 1, 8, 13)
+
+head(messy_conditionality_data)
+```
+
+Then, the issue was that each loan was it's own row. But what I wanted was country-level information with total number of loans, total number of each condition type, and total number of each condition policy area. First, I started with counting the total number of each loan for each country by counting how many times each country shows up.
+
+```{r}
+
+# Counting total number of conditions
+
+total_conditionality <-
+  count(messy_conditionality_data,
+        Country.Name)
+
+head(total_conditionality)
+```
+
+Then, I wanted to count the number of each type of condition and each policy area, which ended up being more complicated than I expected, but worked out in the end.
+
+```{r}
+
+# Counting the number of each condition type
+
+df_type_original <- 
+  table(messy_conditionality_data$Country.Name,
+        messy_conditionality_data$Condition.Type)
+
+head(df_type_original)
+
+# Counting the number of each policy area
+
+df_policy_area_original <- 
+  table(messy_conditionality_data$Country.Name,
+        messy_conditionality_data$Condition.Policy.Area)
+
+head(df_policy_area_original)
+```
+
+The next thing I had to do was make the three data frames into tibble form so that I could more easily change the column names, and merge them eventually.
+
+```{r}
+
+# Changing into tibble format
+
+df_type <- 
+  as_tibble(as.data.frame.matrix(df_type_original), rownames = "country_name")
+
+head(df_type)
+
+df_policy_area <- 
+  as_tibble(as.data.frame.matrix(df_policy_area_original), rownames = "country_name")
+
+head(df_policy_area)
+
+total_conditionality <-
+  as_tibble(total_conditionality)
+
+head(total_conditionality)
+```
+
+```{r}
+
+# Changing column names
+
+total_conditionality <-
+  rename(total_conditionality,
+         country_name = Country.Name,
+         total_conditions = n) 
+
+head(total_conditionality)
+
+df_type <-
+  rename(df_type,
+         type_IB = IB,
+         type_PA = PA,
+         type_PC = PC,
+         type_QPC = QPC,
+         type_SB = SB,
+         type_SPC = SPC)
+
+head(df_type)
+
+df_policy_area <-
+  rename(df_policy_area,
+         area_DEB = DEB,
+         area_ENV = ENV,
+         area_EXT = EXT,
+         area_FIN = FIN,
+         area_FP = FP,
+         area_INS = INS,
+         area_LAB = LAB,
+         area_OTH = OTH,
+         area_POV = POV,
+         area_PRI = PRI,
+         area_RTP = RTP,
+         area_SOE = SOE,
+         area_SP = SP)
+
+head(df_policy_area)
+```
+
+Just a note – once I changed one column name, I had to use the new one every time, so there's so confusion in how it looks. But it's just because of this, and I found that commenting out as I went tended to help with this issue!
+
+### Merging
+
+The last step was to merge my different data frames. This ended up being a lot easier than I thought! First, I merged my conditionality data frames. Then, I got rid of the extra columns with the country name. Then, I merged those on to my quota data.
+
+```{r}
+
+# Merging my conditionality data
+
+merged_conditionality <-
+  bind_cols(total_conditionality, df_type, df_policy_area)
+
+# Getting rid of repeated country_name columns
+
+merged_conditionality <-
+  select(merged_conditionality, 1:2, 4:9, 11:18)
+
+# Changing the country_name column
+
+merged_conditionality <-
+  rename(merged_conditionality,
+         country_name = "country_name...1")
+
+head(merged_conditionality)
+```
+
+```{r}
+
+# Merging with my quota data
+
+test_merge <- quota_data %>%
+  left_join(merged_conditionality, by = "country_name")
+
+# Changing "NA" to 0
+
+test_merge[is.na(test_merge)] <- 0
+
+# Renaming the data frame
+
+df_final <- test_merge
+
+head(df_final)
+```
+
+That leaves me with my cleaned data, called df_final.
+
 # Tests
 
-bla bla
+The first thing I noticed before even testing was that my quota_percent column was in character form (chr), when I need it to be a numeric (dbl). Also, all my conditions and policy area columns are in numeric form (dbl), which kind of makes sense, but in reality, it needs to be an integer, since there can't be decimals in the number of loans. So, I'll change that:
+
+```{r}
+
+# Changing the quota_percent column from <chr> to <dbl>
+
+df_final$quota_percent <- as.numeric(df_final$quota_percent)
+
+# Changing the conditions and policy area columns from <dbl> to <int>
+
+df_final <- df_final %>%
+  mutate(across(c(total_conditions, type_IB, type_PA, type_PC, type_QPC, type_SB, type_SPC, area_DEB, area_ENV, area_EXT, area_FIN, area_FP, area_INS, area_LAB, area_OTH), as.integer))
+
+head(df_final)
+```
 
 # Graphs
 

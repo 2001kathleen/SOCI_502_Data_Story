@@ -1,5 +1,92 @@
 ---
 title: "Exploratory Data Analysis"
 author: "Kathleen Boulter"
-format: html
+format: pdf
 ---
+
+Intro, write a bit about it, explain what I'm going to do
+
+# Cleaning
+
+For my project, I needed to combine two separate datasets and arrange them so that I had the information I needed from my simulation. For the quotas, I used data directly from the IMF (cite), and for information on loan conditions, I used data from an IMF monitor group (cite). I cleaned each separately, and then I merged them.
+
+### Quota data
+
+I started by setting up my library and reading in the raw data.
+
+```{r}
+#| message: false
+
+# Library set-up
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(tinytable)
+library(dplyr)
+```
+
+```{r}
+
+# Reading in the raw quota data
+
+raw_quota_data <-
+  read.csv("raw_quota_data.csv")
+
+head(raw_quota_data)
+```
+
+Next, I needed to drop the columns that I didn't need, change the column names, get rid of empty rows, and make sure all the country names made sense. I also needed to arrange it alphabetically so it would be easier to merge with my other data down the line.
+
+```{r}
+
+# Dropping columns
+
+quota_data <- 
+  select(raw_quota_data, 1, 2)
+
+# Dropping empty rows
+
+quota_data <- quota_data %>%
+  slice(3:195) %>%
+  mutate(across(where(is.character), ~ na_if(trimws(.), ""))) %>%
+  remove_empty("rows")
+
+# Renaming columns
+
+quota_data <-
+  rename(quota_data,
+         country_name = Table.1..Updated.Quota.Formula.Variables.Shares.1.,
+         quota_percent = X)
+
+# Arranging alphabetically
+
+quota_data <-
+  arrange(quota_data, country_name)
+
+# Changing "China 2/" to "China"
+
+quota_data <-
+  quota_data |>
+  mutate(
+    country_name = str_replace_all(country_name, "China 2/", "China")
+  )
+
+head(quota_data)
+```
+
+Once I had the cleaned quota data, I moved on to the conditionality data.
+
+### Conditionality data
+
+# Tests
+
+bla bla
+
+# Graphs
+
+blablabla
+
+# Conclusion
+
+What surprised me (maybe change the title here)

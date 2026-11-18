@@ -4,11 +4,13 @@ author: "Kathleen Boulter"
 format: pdf
 ---
 
-Intro, write a bit about it, explain what I'm going to do
+This script includes my data cleaning, condensed down, as well as testing and exploratory data analysis.
 
 # Cleaning
 
 For my project, I needed to combine two separate datasets and arrange them so that I had the information I needed from my simulation. For the quotas, I used data directly from the IMF (cite), and for information on loan conditions, I used data from an IMF monitor group (cite). I cleaned each separately, and then I merged them.
+
+A quick note - changing column names seemed to sometimes make it so that nothing could render. If that happens, it's likely because I had to change it to the new column name so it would run again.
 
 ### Quota data
 
@@ -421,6 +423,40 @@ ggplot(df_final, aes(x = quota_percent)) +
 
 This way, we can see that certain types of conditions group together in different areas. For example, we see that yellow dots, referring to SPC type, are concentrated along the x-axis, meaning that many countries do not have this type of condition (because total number of conditions is zero). At the same time, we can see that a number of countries with low IMF quotas do have this type of condition. While I'm not yet able to make the graph interactive, by changing the transparency of different variables, I can also see where variables are concentrated. For example, when I make PC (green) less transparent, I can see that it is also concentrated along the x-axis, but unlike SPC, is not as common in general.
 
+While there does seem to be a second clump of values around 2% quota, the majority are under 1%. We can change the scale of the x-axis again to only go to 1, we can see more detail.
+
+```{r}
+
+# Making the x-axis smaller
+
+ggplot(df_final, aes(x = quota_percent)) +
+  geom_jitter(aes(y = type_IB, color = "IB"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PA, color = "PA"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PC, color = "PC"), 
+              size = 2.5, alpha = 1, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_QPC, color = "QPC"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SB, color = "SB"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SPC, color = "SPC"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    y = "Total Number of Conditions", 
+    x = "IMF Quota (Percent)", 
+    color = "Condition Type",
+    title = "Number of Conditions by Type and IMF Quota") +
+  coord_cartesian(xlim = c(0, 1)) +
+  theme_minimal(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    text = element_text(family = "sans")
+  )
+```
+
 Another type of graph I could make is essentially the same, but with fewer colours that represent whether condition types are binding or not binding. QPC, PA, SPC, and PC conditions are binding, meaning countries are required to meet them. IB and SB are non-binding, intended as goals.
 
 ```{r}
@@ -455,6 +491,69 @@ ggplot(df_final, aes(x = quota_percent)) +
 
 This shows us that binding conditions are less common, because they are concentrated along the x-axis. However, it is also notable that non-binding conditions are common, especially for countries with lower quotas.
 
+We could also make a bar plot of the most common condition types and policy areas.
+
+```{r}
+
+# Finding the totals for each type of condition
+
+type_totals <-
+  colSums(df_final[, c("type_IB", 
+                       "type_PA", 
+                       "type_PC", 
+                       "type_QPC", 
+                       "type_SB", 
+                       "type_SPC")])
+
+type_totals
+
+# Finding the totals for each policy area
+
+area_totals <-
+  colSums(df_final[, c("area_DEB", 
+                       "area_ENV", 
+                       "area_EXT", 
+                       "area_FIN", 
+                       "area_FP", 
+                       "area_INS", 
+                       "area_LAB", 
+                       "area_OTH", 
+                       "area_POV", 
+                       "area_PRI", 
+                       "area_RTP", 
+                       "area_SOE", 
+                       "area_SP")])
+
+area_totals
+
+# Making a bar plot of condition type
+
+type_totals %>%
+  enframe(name = "type", value = "count") %>%
+  mutate(type = str_remove(type, "type_")) %>%
+  ggplot(aes(x = reorder(type, -count), y = count)) +
+  geom_col(fill = "maroon") +
+  labs(title = "Totals by Condition Type", 
+       x = "Condition Type", 
+       y = "Number of Conditions") +
+  theme_minimal()
+
+area_totals %>%
+  enframe(name = "area", value = "count") %>%
+  mutate(area = str_remove(area, "area_")) %>%
+  ggplot(aes(x = reorder(area, -count), y = count)) +
+  geom_col(fill = "orange2") +
+  labs(title = "Totals by Policy Area", 
+       x = "Policy Area", 
+       y = "Number of Conditions") +
+  theme_minimal()
+
+```
+
+This shows us that QPC (Quantitative Performance Criteria) is the most common condition type, followed closely by SB (Structural Benchmarks). QPC is binding, and SB is not. By far, the least common condition type is PC (Performance Criteria). This type of condition is included no matter what, so if any other conditions get added, it's coded as the higher-level condition, which then makes sense why there are so few.
+
+For policy area, we can see that FIN (Financial Sector, Monetary Policy, and Central Bank) is the most common, which makes sense because we're talking about IMF loans. That's followed quite closely by DEB (External Debt) and FP (Fiscal Policy). The least common policy areas are ENV (Land and Environment), OTH (Other: residual category), and SP (Social Policy: Restrictive or Neutral).
+
 # Conclusion
 
-What surprised me (maybe change the title here)
+There weren't many things that I found super surprising, because the correlation I'm looking at is pretty obvious; of course countries with lower quota tend to have more loan conditions, because they are poorer countries who probably need more loans. One thing I did find interesting was that there were more binding conditions than non-binding conditions. I had expected to see more non-binding conditions, because those are easier to make. In terms of data visualization specifically, it occurred to me that the way I had imagined representing my data – as a scatter plot – might be confusing in some ways. The way I set it up – with the y-axis showing number of conditions – made it seem like there were a ton of loans of one type concentrated in one area. In reality, that means that there were fewer loans of that type, since they are grouping near the x-axis at 0. But at first glance, it looks very different! This made me think about how visualization is important.

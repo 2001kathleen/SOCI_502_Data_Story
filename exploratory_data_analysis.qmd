@@ -24,6 +24,7 @@ library(janitor)
 library(lubridate)
 library(tinytable)
 library(dplyr)
+library(ggplot2)
 ```
 
 ```{r}
@@ -149,7 +150,8 @@ df_type <-
 head(df_type)
 
 df_policy_area <- 
-  as_tibble(as.data.frame.matrix(df_policy_area_original), rownames = "country_name")
+  as_tibble(as.data.frame.matrix(df_policy_area_original), 
+            rownames = "country_name")
 
 head(df_policy_area)
 
@@ -216,7 +218,7 @@ merged_conditionality <-
 # Getting rid of repeated country_name columns
 
 merged_conditionality <-
-  select(merged_conditionality, 1:2, 4:9, 11:18)
+  select(merged_conditionality, 1:2, 4:9, 11:23)
 
 # Changing the country_name column
 
@@ -260,14 +262,198 @@ df_final$quota_percent <- as.numeric(df_final$quota_percent)
 # Changing the conditions and policy area columns from <dbl> to <int>
 
 df_final <- df_final %>%
-  mutate(across(c(total_conditions, type_IB, type_PA, type_PC, type_QPC, type_SB, type_SPC, area_DEB, area_ENV, area_EXT, area_FIN, area_FP, area_INS, area_LAB, area_OTH), as.integer))
+  mutate(across(c(total_conditions, 
+                  type_IB, 
+                  type_PA, 
+                  type_PC, 
+                  type_QPC, 
+                  type_SB, 
+                  type_SPC, 
+                  area_DEB, 
+                  area_ENV, 
+                  area_EXT, 
+                  area_FIN, 
+                  area_FP, 
+                  area_INS, 
+                  area_LAB, 
+                  area_OTH, 
+                  area_POV, 
+                  area_PRI, 
+                  area_RTP, 
+                  area_SOE, 
+                  area_SP), as.integer))
 
 head(df_final)
 ```
 
+Another thing I want to check is that quota_percent adds up to 100, since they should add up to 100% of the quota between all countries. This isn't as simple as I hoped, because of tiny differences in decimals, so instead of checking if it added to 100, I just checked the sum. It's off by 0.0024%, which isn't nothing, but is probably due to rounding errors. While it might not technically pass the test fully, it passes for what I actually need to do.
+
+```{r}
+
+# Testing if quota_percent adds up to 100
+
+sum(df_final$quota_percent) == 100
+
+# Checking what it actually adds to, to see if the difference actually matters
+
+sum(df_final$quota_percent)
+```
+
+I also want to make sure that total_conditions is equal to both the total number of condition types and the total number of policy areas (separately).
+
+```{r}
+
+# Testing if total_conditions = the sum of all the condition types
+
+sum(df_final[, 
+             c("type_IB", 
+               "type_PA", 
+               "type_PC", 
+               "type_QPC", 
+               "type_SB", 
+               "type_SPC")], 
+    na.rm = TRUE) ==
+      sum(df_final$total_conditions, na.rm = TRUE)
+
+# Testing if total_conditions = the sum of all the policy areas
+
+sum(df_final[, 
+             c("area_DEB", 
+               "area_ENV", 
+               "area_EXT", 
+               "area_FIN", 
+               "area_FP", 
+               "area_INS", 
+               "area_LAB", 
+               "area_OTH", 
+               "area_POV", 
+               "area_PRI", 
+               "area_RTP", 
+               "area_SOE", 
+               "area_SP")], na.rm = TRUE) ==
+  sum(df_final$total_conditions, na.rm = TRUE)
+
+# Not true - going to check what went wrong
+
+sum(df_final$total_conditions)
+
+sum(df_final[, 
+             c("area_DEB", 
+               "area_ENV", 
+               "area_EXT", 
+               "area_FIN", 
+               "area_FP", 
+               "area_INS", 
+               "area_LAB", 
+               "area_OTH", 
+               "area_POV", 
+               "area_PRI", 
+               "area_RTP", 
+               "area_SOE", 
+               "area_SP")])
+```
+
+By doing that last test, I realized I made a mistake earlier when I merged my columns. After I go back and fix that, that test should come back as true. What happened was that I missed the last few columns when getting rid of the repeated country name column when merging, so it didn't make it to my final dataset. I added them into the merge and back into the tests, which now show as true.
+
 # Graphs
 
-blablabla
+There are a lot of different ways to visualize this dataset. When I first started the project, I had wanted to look at how quota percentage (which is directly related to voting power) is correlated with total number of conditions. I'm going to try first to make a scatter plot showing the correlation between quota percent and total number of conditions. I made the scale on the x-axis very small, because the vast majority of countries only have a very small quota, and those are the countries that tend to also have loans.
+
+```{r}
+
+# Making a scatter plot of quota percent and total number of conditions
+# Only one country is above 15% quota, so removing that from the scale
+# Also, countries with loans usually have even lower quotas, so I make smaller
+
+df_final |>
+  ggplot(mapping = aes(x = quota_percent, y = total_conditions)) +
+  geom_point(size = 2.5, alpha = 0.4, colour = "seagreen4") +
+  coord_cartesian(xlim = c(0,2)) +
+  labs(
+    title = "Total Number of Loan Conditions and IMF Quota",
+    x = "IMF Quota (Percent)",
+    y = "Total Number of Conditions"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    element_text(family = "sans")
+  )
+  
+```
+
+This is good, and does match the relationship I expected, where lower quota percent is correlated with a higher number of loans.
+
+I also want to see whether there is any trend regarding the type of condition and the quota percent. To do this, I'm going to make a scatter plot where that is differentiated by colour. I used a jitter plot so the groupings between variables was more obvious, but I had to change the width manually since my scale was so small.
+
+```{r}
+
+# By condition 
+
+ggplot(df_final, aes(x = quota_percent)) +
+  geom_jitter(aes(y = type_IB, color = "IB"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PA, color = "PA"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PC, color = "PC"), 
+              size = 2.5, alpha = 1, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_QPC, color = "QPC"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SB, color = "SB"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SPC, color = "SPC"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    y = "Total Number of Conditions", 
+    x = "IMF Quota (Percent)", 
+    color = "Condition Type",
+    title = "Number of Conditions by Type and IMF Quota") +
+  coord_cartesian(xlim = c(0, 2)) +
+  theme_minimal(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    text = element_text(family = "sans")
+  )
+```
+
+This way, we can see that certain types of conditions group together in different areas. For example, we see that yellow dots, referring to SPC type, are concentrated along the x-axis, meaning that many countries do not have this type of condition (because total number of conditions is zero). At the same time, we can see that a number of countries with low IMF quotas do have this type of condition. While I'm not yet able to make the graph interactive, by changing the transparency of different variables, I can also see where variables are concentrated. For example, when I make PC (green) less transparent, I can see that it is also concentrated along the x-axis, but unlike SPC, is not as common in general.
+
+Another type of graph I could make is essentially the same, but with fewer colours that represent whether condition types are binding or not binding. QPC, PA, SPC, and PC conditions are binding, meaning countries are required to meet them. IB and SB are non-binding, intended as goals.
+
+```{r}
+
+ggplot(df_final, aes(x = quota_percent)) +
+  geom_jitter(aes(y = type_IB, color = "Non-binding"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PA, color = "Binding"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_PC, color = "Binding"), 
+              size = 2.5, alpha = 1, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_QPC, color = "Binding"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SB, color = "Non-binding"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  geom_jitter(aes(y = type_SPC, color = "Binding"), 
+              size = 2.5, alpha = 0.3, width = 0.1, height = 0.3) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    y = "Total Number of Conditions", 
+    x = "IMF Quota (Percent)", 
+    color = "Condition Type",
+    title = "Number of Conditions by Type and IMF Quota") +
+  coord_cartesian(xlim = c(0, 2)) +
+  theme_minimal(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    text = element_text(family = "sans")
+  )
+```
+
+This shows us that binding conditions are less common, because they are concentrated along the x-axis. However, it is also notable that non-binding conditions are common, especially for countries with lower quotas.
 
 # Conclusion
 
